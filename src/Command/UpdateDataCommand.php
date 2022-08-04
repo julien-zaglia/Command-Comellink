@@ -72,7 +72,21 @@ class UpdateDataCommand extends Command
         /** @var string $fileString */
         $fileString = file_get_contents($file);
         $data = $serializer->decode($fileString, $fileExtension);
-        $this->setData($data);
+        
+            if (empty($data))
+            {
+                $this->io->error('Base de donnée vide');
+                exit;
+            }
+            elseif(!is_array($data))
+            {
+                $this->io->error('Erreur de base de donnée');
+                exit;
+            }
+            else{
+            $this->setData($data);
+            }
+    
     }
 
     public function setData(array $data)
@@ -114,15 +128,11 @@ class UpdateDataCommand extends Command
         $this->getDataFromFile();
         $this->calculMoyenne($this->data);
 
-
         $updateData= new Update;
         $updateData->setMoyenne($this->calculMoyenne($this->data));
         $updateData->setMax($this->calculMax($this->data));
         $updateData->setMin($this->calculMin($this->data));
         $updateData->setDatime(new \DateTime());
-
-        $this->entityManager->persist($updateData);
-        $this->entityManager->flush();
 
         $this->io->text('La moyenne est de :');
         $this->io->text($updateData->getMoyenne());
@@ -130,6 +140,10 @@ class UpdateDataCommand extends Command
         $this->io->text($updateData->getMax());
         $this->io->text('Le minimum est de :');
         $this->io->text($updateData->getMin());
+
+        $this->entityManager->persist($updateData);
+        $this->entityManager->flush();
+
     }
 }
 
